@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Book {{ car.brand }} {{ car.model }} - Car Rental Service{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-check"></i> Book Your Car
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Car Details -->
+                        <div class="col-md-6">
+                            <div class="text-center mb-4">
+                                <div class="bg-light p-4 rounded">
+                                    <i class="fas fa-car fa-5x text-muted"></i>
+                                </div>
+                            </div>
+                            
+                            <h4 class="text-center">{{ car.brand }} {{ car.model }}</h4>
+                            
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Year:</strong></td>
+                                    <td>{{ car.year }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Type:</strong></td>
+                                    <td><span class="badge bg-secondary">{{ car.vehicle_type }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Rate:</strong></td>
+                                    <td class="text-success"><strong>${{ car.price_per_hour }}/hour</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td><span class="badge bg-success">Available</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Booking Form -->
+                        <div class="col-md-6">
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label for="start_date" class="form-label">Pickup Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="start_date" 
+                                           name="start_date" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="end_date" class="form-label">Return Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="end_date" 
+                                           name="end_date" required>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <strong>Rate:</strong> ${{ car.price_per_hour }} per hour<br>
+                                    <small>Total cost will be calculated based on rental duration</small>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the Terms and Conditions
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success w-100 btn-lg">
+                                    <i class="fas fa-check"></i> Confirm Booking
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Cars
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
