@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Car Rental Service{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-cog"></i> Admin Dashboard
+            </h2>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ cars|length }}</h4>
+                            <p class="mb-0">Total Cars</p>
+                        </div>
+                        <div><i class="fas fa-car fa-2x"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ cars|selectattr('available', 'equalto', True)|list|length }}</h4>
+                            <p class="mb-0">Available</p>
+                        </div>
+                        <div><i class="fas fa-check-circle fa-2x"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ bookings|length }}</h4>
+                            <p class="mb-0">Total Bookings</p>
+                        </div>
+                        <div><i class="fas fa-calendar-check fa-2x"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>${{ "%.0f"|format(bookings|sum(attribute='total_cost') or 0) }}</h4>
+                            <p class="mb-0">Revenue</p>
+                        </div>
+                        <div><i class="fas fa-dollar-sign fa-2x"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#cars" type="button">
+                <i class="fas fa-car"></i> Manage Cars
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#bookings" type="button">
+                <i class="fas fa-calendar"></i> View Bookings
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content">
+        <!-- Cars Management Tab -->
+        <div class="tab-pane fade show active" id="cars">
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Car Inventory</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarModal">
+                        <i class="fas fa-plus"></i> Add New Car
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Car</th>
+                                    <th>Type</th>
+                                    <th>Price/Hour</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for car in cars %}
+                                    <tr>
+                                        <td>{{ car.id }}</td>
+                                        <td>
+                                            <strong>{{ car.brand }} {{ car.model }}</strong><br>
+                                            <small class="text-muted">{{ car.year }}</small>
+                                        </td>
+                                        <td>{{ car.vehicle_type }}</td>
+                                        <td class="text-success">${{ "%.2f"|format(car.price_per_hour) }}</td>
+                                        <td>
+                                            {% if car.available %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Unavailable</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('toggle_car_availability', car_id=car.id) }}" 
+                                               class="btn btn-sm {% if car.available %}btn-warning{% else %}btn-success{% endif %}">
+                                                {% if car.available %}
+                                                    <i class="fas fa-times"></i> Disable
+                                                {% else %}
+                                                    <i class="fas fa-check"></i> Enable
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bookings Tab -->
+        <div class="tab-pane fade" id="bookings">
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Customer</th>
+                                        <th>Car</th>
+                                        <th>Dates</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Booked On</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                        <tr>
+                                            <td>{{ booking.id }}</td>
+                                            <td>{{ booking.username }}</td>
+                                            <td>{{ booking.brand }} {{ booking.model }}</td>
+                                            <td>
+                                                <small>
+                                                    {{ booking.start_date[:10] }} to<br>
+                                                    {{ booking.end_date[:10] }}
+                                                </small>
+                                            </td>
+                                            <td class="text-success">${{ "%.2f"|format(booking.total_cost) }}</td>
+                                            <td>
+                                                <span class="badge bg-success">{{ booking.status|title }}</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    {{ booking.created_at[:10] }}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-5x text-muted mb-3"></i>
+                            <h5 class="text-muted">No bookings yet</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Car Modal -->
+<div class="modal fade" id="addCarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Car</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_car') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="brand" class="form-label">Brand</label>
+                        <input type="text" class="form-control" id="brand" name="brand" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="model" class="form-label">Model</label>
+                        <input type="text" class="form-control" id="model" name="model" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Year</label>
+                        <input type="number" class="form-control" id="year" name="year" 
+                               min="2000" max="2025" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price per Hour ($)</label>
+                        <input type="number" class="form-control" id="price" name="price" 
+                               step="0.01" min="10" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="vehicle_type" class="form-label">Vehicle Type</label>
+                        <select class="form-select" id="vehicle_type" name="vehicle_type" required>
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Sports">Sports Car</option>
+                            <option value="Electric">Electric</option>
+                            <option value="Luxury">Luxury</option>
+                            <option value="Compact">Compact</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Car
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
